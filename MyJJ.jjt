@@ -188,13 +188,13 @@ void function() #FUNCTION : {}{
 
 
 void type () #TYPE : {Token t;}{
-  t = <INTEGER> {jjtThis.value = t.image;}
-  | t = <BOOLEAN> {jjtThis.value = t.image;}
-  | t = <VOID> {jjtThis.value = t.image;}
+  t = <INTEGER> #INT {jjtThis.value = t.image;}
+  | t = <BOOLEAN> #BOOL {jjtThis.value = t.image;}
+  | t = <VOID> #VOID {jjtThis.value = t.image;}
 
 }
 
-void parameter_list() #PARAMS LIST : {}{ //No void, want to see parameter_list Appear as a node
+void parameter_list() #PARAMSLIST : {}{ //No void, want to see parameter_list Appear as a node
   (nemp_parameter_list())?
 }
 
@@ -205,10 +205,10 @@ void nemp_parameter_list() #void : {}{ //dont want to create a node, its done in
 void main() #MAIN : {}{
   [
   <MAIN>
-  <LCHAIN>
+  lchain()
     decl_list()
     statement_block()
-  <RCHAIN>
+  rchain()
   ]
 }
 
@@ -216,15 +216,15 @@ void statement_block() #void : {}{
   (statement() statement_block())?
 }
 
-void statement() #STATEMENT : {}{ //Node will be created called statement
+void statement() #void : {}{ //Node will be created called statement
     id() 
     (
-        <ASSIGN> expression() <SEMIC> 
+        <ASSIGN> #EQUALS expression() <SEMIC> 
       | <LBR> arg_list() <RBR> <SEMIC>
     ) 
-  | <LCHAIN> statement_block() <RCHAIN>
-  | <IF> condition() <LCHAIN> statement_block() <RCHAIN> [<ELSE> <LCHAIN> statement_block() <RCHAIN>] /*****OPTION TO ELSE???*****/
-  | <WHILE> condition() <LCHAIN> statement_block() <RCHAIN>
+  | lchain() #OPENSTATEMENTBLOCK statement_block() rchain() #CLOSESTATEMENTBLOCK
+  | <IF> #IF condition() lchain() statement_block() rchain() [<ELSE> #ELSE lchain() statement_block() rchain()] /*****OPTION TO ELSE???*****/
+  | <WHILE> #WHILE condition() lchain() statement_block() rchain()
   | <SKIPSKIP> <SEMIC>
 }
 
@@ -242,13 +242,13 @@ void expression() : {}{
 }
 */
 
-void expression() #EXPRESSION: {}{
+void expression() #void : {}{
     fragment() [binary_arith_op() expression()] 
 }
 
 void binary_arith_op() #BINOP : {Token t;}{
-    t = <PLUS> {jjtThis.value = t.image;} 
-    | t = <MINUS> {jjtThis.value = t.image;}
+    t = <PLUS> #PLUS {jjtThis.value = t.image;} 
+    | t = <MINUS> #MINUS {jjtThis.value = t.image;}
 }
 
 /*********************ORIGINAL***********************/
@@ -263,15 +263,15 @@ void fragment() : {}{
 }
 */
 
-void fragment() #void : {}{
+void fragment() #void : {}{ //Insert Token t
     id()
     (
       [<LBR> arg_list() <RBR>]
     )
-  | <NUM>
-  | <TRUE>
-  | <FALSE>
-  | <MINUS> fragment()
+  | <NUM> #NUM
+  | <TRUE> #TRUE
+  | <FALSE> #FALSE
+  | <MINUS> #MINUS fragment()
 }
 
 /***************************************************************************************************************/
@@ -289,17 +289,17 @@ void condition() : {}{
 */
 
 /********************EDITED***************************/
-void condition() #CONDITION : {}{
+void condition() #void : {}{
     <NOTOP> condition() 
   | <LBR> condition() <RBR> [conditionPrime()]
   | expression() comp_op() expression() [conditionPrime()]
 }
 
-void conditionPrime() #void : {}{
+void conditionPrime() #ANDOR : {}{
   (<ANDOP> | <OROP>) condition()
 }
 
-void comp_op() #COMP-OP : {Token t;}{
+void comp_op() #COMPOP : {Token t;}{
     t = <BOOLEQLS> {jjtThis.value = t.image;}
   | t = <NOTEQLS> {jjtThis.value = t.image;}
   | t = <LESSTHAN> {jjtThis.value = t.image;}
@@ -318,4 +318,12 @@ void nemp_arg_list() #void : {}{
 
 void id() #ID : {Token t;} {
   t = <ID> {jjtThis.value = t.image;}
+}
+
+void lchain() #LCHAIN : {}{
+  <LCHAIN>
+}
+
+void rchain() #RCHAIN :{}{
+  <RCHAIN>
 }

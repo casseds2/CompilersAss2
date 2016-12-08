@@ -1,7 +1,7 @@
 integer multiply (x:integer , y:integer)
 {
-	var result:integer;
-	var minus_sign:boolean;
+	//var result:integer;
+	//var minus_sign:boolean;
 	//figure out sign of result and convert args to absolute values
 
 	/* Hello */
@@ -11,6 +11,7 @@ integer multiply (x:integer , y:integer)
 		x = -x ;
 	}
 
+/*
 	else
 	{
 		if ~y < 0 && ~x >= 0
@@ -21,17 +22,19 @@ integer multiply (x:integer , y:integer)
 		else
 		{
 			if ~(~x < 0 ) && y < 0
-		{
-			minus_sign = false;
-			x = -x ;
-			y = -y ;
-		}
-		else
-		{
-			minus_sign = false;
+			{
+				minus_sign = false;
+				x = -x ;
+				y = -y ;
+			}
+			else
+			{
+				minus_sign = false;
+			}
 		}
 	}
 }
+*/
 
 	result = 0;
 	while ( y > -0)
@@ -51,6 +54,7 @@ integer multiply (x:integer , y:integer)
 
 return (result);
 }
+
 main
 {
 	var arg_1 :integer;

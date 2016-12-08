@@ -1,0 +1,8 @@
+
+main{
+
+	if((x > 0)  && y >= 0){
+			minus_sign = true;
+			x = -x ;
+	}
+}
