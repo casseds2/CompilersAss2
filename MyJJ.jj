@@ -193,7 +193,7 @@ SimpleNode program()          : {/*@bgen(jjtree) PROGRAM */
 }
 
 void decl_list()       : {}{
-  (decl() <SEMIC> decl_list())*  /**SHOULD I ADD #decl_list(2) after this as its optional?**/
+  (decl() <SEMIC> decl_list())?  /**SHOULD I ADD #decl_list(2) after this as its optional?**/
 }
 
 void decl()       : {}{

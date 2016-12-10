@@ -98,20 +98,16 @@ public class MyJJ/*@bgen(jjtree)*/implements MyJJTreeConstants, MyJJConstants {/
   }
 
   static final public void decl_list() throws ParseException {
-    label_1:
-    while (true) {
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case VARIABLE:
-      case CONSTANT:
-        ;
-        break;
-      default:
-        jj_la1[0] = jj_gen;
-        break label_1;
-      }
+    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+    case VARIABLE:
+    case CONSTANT:
       decl();
       jj_consume_token(SEMIC);
       decl_list();
+      break;
+    default:
+      jj_la1[0] = jj_gen;
+      ;
     }
   }
 

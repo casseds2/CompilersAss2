@@ -158,7 +158,7 @@ SimpleNode program() #PROGRAM : {}{
 }
 
 void decl_list() #void : {}{
-  (decl() <SEMIC> decl_list())*  /**SHOULD I ADD #decl_list(2) after this as its optional?**/
+  (decl() <SEMIC> decl_list())?  /**SHOULD I ADD #decl_list(2) after this as its optional?**/
 }
 
 void decl() #void : {}{
