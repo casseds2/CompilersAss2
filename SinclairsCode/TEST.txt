@@ -1,0 +1,7 @@
+int a;
+int xyz;
+bool Temp;
+6*(11-7)/3+100;
+a*(11-xyz)/3+Temp;
+~(a|b)&(a|~c);
+Temp & a;

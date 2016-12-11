@@ -1,0 +1,13 @@
+integer multiply (x:integer , y:integer)
+{
+	var result:integer;
+	var minus_sign:boolean;
+
+	if((x > 0)  && y >= 0)
+	{
+		minus_sign = true;
+		x = -x ;
+	}
+
+	return (result);
+}

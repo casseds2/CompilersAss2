@@ -2,20 +2,18 @@
 
 options
 {
-  IGNORE_CASE = false;
-  MULTI=true;
+  IGNORE_CASE = true;
+  MULTI = true;
   VISITOR = true;
-  NODE_DEFAULT_VOID=false;
-  DEBUG_PARSER = false;
-  DEBUG_LOOKAHEAD = false;
+  NODE_DEFAULT_VOID=true;
 }
 
-PARSER_BEGIN(JJTree)
+PARSER_BEGIN(MyJJ)
 
 import java.io.*;
 import java.util.*;
 
-public class JJTree
+public class MyJJ
 {
   public static Hashtable ST = new Hashtable();
 
@@ -30,7 +28,7 @@ public class JJTree
       System.exit(1);
     }
 
-    JJTree parser = new JJTree(new FileInputStream(args[0]));
+    MyJJ parser = new MyJJ(new FileInputStream(args[0]));
 
     SimpleNode root = parser.program();
 
@@ -57,7 +55,7 @@ public class JJTree
         System.out.println(" value = " + temp2.value);
       }
     }
-/*
+    /*
     System.out.println();
     System.out.println("Program:");
     PrintVisitor pv = new PrintVisitor();
@@ -67,11 +65,11 @@ public class JJTree
     System.out.println("Type Checking:");
     TypeCheckVisitor tc = new TypeCheckVisitor();
     root.jjtAccept(tc, ST);
-*/  
+    */    
   }
 }
 
-PARSER_END(JJTree)
+PARSER_END(MyJJ)
 
 
 /**Specify the Tokens For Lexical Analysis**/
@@ -154,24 +152,24 @@ SimpleNode program() #Program : {}{
 	decl_list()
 	function_list()
 	main()
-	{return jjtThis;}
 	<EOF>
+	{return jjtThis;}
 }
 
 void decl_list() #void : {}{
 	(decl() <SEMIC> decl_list())?
 }
 
-void decl() #void : {}{
-	var_decl() | const_decl()
+void decl() #Decl : {}{
+	(var_decl() | const_decl())
 }
 
-void var_decl() #Decl : {Token t;}{
-	t = <VARIABLE> identifier() <COLON> type() {jjtThis.value = t.image;}
+void var_decl() #Var_decl : {Token t; String name;}{
+	t = <VARIABLE> name = id() {jjtThis.value = t.image;} <COLON> type()
 }
 
-void const_decl() #Decl : {Token t;}{
-	t = <CONSTANT> identifier() <COLON> type() <ASSIGN> #Assign(2) expression() {jjtThis.value = t.image;} 
+void const_decl() #Const_decl : {Token t; String name;}{
+	t = <CONSTANT> name = id() {jjtThis.value = t.image;} <COLON> type() <ASSIGN> expression() #ASSIGN(2)
 }
 
 void function_list() #void : {}{
@@ -179,30 +177,30 @@ void function_list() #void : {}{
 }
 
 void function() #Function : {}{
-	type() identifier() <LBR> parameter_list() <RBR>
+	type() id() <LBR> parameter_list() <RBR>
 	<LCHAIN>
 		decl_list()
 		statement_block()
-		<RETURN> <LBR> (expression())? <RBR> <SEMIC> #Function_Return(1)
+		<RETURN> <LBR> (expression())? <RBR> <SEMIC> /**ARE BRACKETS IN THE RIGHT PLACE?**/
 	<RCHAIN>
 }
 
 
-void type () #Type : {Token t; String name;}{
-	t = <INTEGER> {jjtThis.value = t.image;}
-	| t = <BOOLEAN> {jjtThis.value = t.image;} 
+void type () : {Token t;}{
+	  t = <INTEGER> {jjtThis.value = t.image;} 
+	| t = <BOOLEAN> {jjtThis.value = t.image;}
 	| t = <VOID> {jjtThis.value = t.image;}
 }
 
-void parameter_list() #Params : {}{
+void parameter_list() #void : {}{
 	(nemp_parameter_list())?
 }
 
 void nemp_parameter_list() #void : {}{
-	identifier() <COLON> (type() [<COMMA> nemp_parameter_list()])
+	id() <COLON> (type() [<COMMA> nemp_parameter_list()]) /*****************CHANGED*******************/
 }
 
-void main() #Main : {}{
+void main() : {}{
 	[
 	<MAIN>
 	<LCHAIN>
@@ -213,90 +211,118 @@ void main() #Main : {}{
 }
 
 void statement_block() #void : {}{
-	(statement() statement_block())?
+	(statement() #STM(1) statement_block())?
 }
 
-void statement() #void /*#Assign*/ : {}{
-		identifier()
+void statement() : {}{
+		id() 
 		(
-				<ASSIGN> expression() <SEMIC> #Assign(2)
+				<ASSIGN> expression() <SEMIC> //#ASSIGN(2) 
 			|	<LBR> arg_list() <RBR> <SEMIC>
-		)?
+		)	
 	|	<LCHAIN> statement_block() <RCHAIN>
-	|	conditionStatement() condition() <LCHAIN> statement_block() <RCHAIN> [LOOKAHEAD(2) conditionStatement() <LCHAIN> statement_block() <RCHAIN>]
-//	|	whileC() condition() <LCHAIN> statement_block() <RCHAIN>
+	|	<IF> condition() <LCHAIN> statement_block() <RCHAIN> [<ELSE> <LCHAIN> statement_block() <RCHAIN>]
+	|	<WHILE> condition() <LCHAIN> statement_block() <RCHAIN>
 	|	<SKIPSKIP> <SEMIC>
-//	|	<LBR> arg_list() <RBR> <SEMIC>
 }
+
+/***************************************************************************************************************/
+/*******************************************EXPRESSION RULE*****************************************************/
+/***************************************************************************************************************/
+
+/*********************ORIGINAL***********************/
+/*
+void expression() : {}{
+		fragment() binary_arith_op() fragment()
+	|	<LBR> expression() <RBR>
+	|	<ID> <LBR> arg_list() <RBR>
+	|	fragment()
+}
+*/
 
 void expression() #void : {}{
-		fragment() [binary_arith_op() ]	
+		fragment() [binary_arith_op() expression()]	
 }
 
-void binary_arith_op() #Bin_op(2) : {Token t;}{
-		t = <PLUS> expression() {jjtThis.value = t.image;}
-	|	t = <MINUS> expression() {jjtThis.value = t.image;}
+void binary_arith_op(): {Token t;}{
+	  t = <PLUS> {jjtThis.value = t.image;}
+	| t = <MINUS> {jjtThis.value = t.image;}
 }
 
-void fragment() #Fragment(1) : {Token t;}{
-		identifier()
+/*********************ORIGINAL***********************/
+/*
+void fragment() : {}{
+		<ID>
+	|	<MINUS> <ID>
+	|	<NUM>
+	|	<TRUE>
+	|	<FALSE>
+	|	expression()
+}
+*/
+
+void fragment() #void : {}{
+		id()
 		(
 			[<LBR> arg_list() <RBR>]
 		)
-	|	num()
-	|	bool()
-	|	minus() fragment()
+	|	number()
+	|	<TRUE>
+	|	<FALSE>
+	|	<MINUS> fragment()
 }
 
-void condition() #void : {}{
+/***************************************************************************************************************/
+/*******************************************CONDITION RULE******************************************************/
+/***************************************************************************************************************/
+
+/*********************ORIGINAL***********************/
+/*
+void condition() : {}{
+		<NOTOP> condition()
+	|	<LBR> condition() <RBR>
+	|	expression() comp_op() expression()
+	|	condition() <LBR> <OROP> | <ANDOP> <RBR> condition()
+}
+*/
+
+/********************EDITED***************************/
+void condition() : {}{
 		<NOTOP> condition() 
 	|	<LBR> condition() <RBR> [conditionPrime()]
 	|	expression() comp_op() expression() [conditionPrime()]
 }
 
-void conditionPrime() #And_Or(4) : {Token t;}{
-	(	
-		t = <ANDOP> {jjtThis.value = t.image;} 
-	| 	t = <OROP> {jjtThis.value = t.image;}
-	) condition()
+void conditionPrime() #void : {}{
+	(<ANDOP> | <OROP>) condition()
 }
 
-void comp_op() #Comp_op(1) : {Token t;}{
-		t = <BOOLEQLS> {jjtThis.value = t.image;}
-	|	t = <NOTEQLS> {jjtThis.value = t.image;}
-	|	t = <LESSTHAN> {jjtThis.value = t.image;}
-	|	t = <LESSEQL> {jjtThis.value = t.image;}
-	|	t = <GREATERTHAN> {jjtThis.value = t.image;}
-	|	t = <GREATEQL> {jjtThis.value = t.image;}
+void comp_op() : {Token t;}{
+		<BOOLEQLS>
+	|	<NOTEQLS>
+	|	<LESSTHAN>
+	|	<LESSEQL>
+	|	<GREATERTHAN>
+	|	<GREATEQL>
 }
 
-void arg_list() #Args : {}{
+void arg_list() #void : {}{
 	(nemp_arg_list())?
 }
 
 void nemp_arg_list() #void : {}{
-	identifier() [(<COMMA> nemp_arg_list())]
+	<ID> [(<COMMA> nemp_arg_list())]
 }
 
-String identifier() #ID : {Token t;}{
-  t = <ID> {jjtThis.value = t.image; ST.put(t.image, new STC("ID", t.image));return t.image;}
+void id() : {Token t;}
+{
+  t = <ID> {jjtThis.value = t.image;}
 }
 
-void num() #Num : {Token t;}{
-	t = <NUM> {jjtThis.value = t.image; ST.put(t.image, new STC("Num", t.image));}
+void number() : {Token t;}{
+	t = <NUM> {jjtThis.value = t.image;}
 }
 
-void bool() #Bool : {Token t;}{
+void true1() : {Token t;}{
 	t = <TRUE> {jjtThis.value = t.image;}
-	| t = <FALSE> {jjtThis.value = t.image;}
-}
-
-void minus() #Minus : {Token t;}{
-	t = <MINUS> {jjtThis.value = t.image;}
-}
-
-void conditionStatement() #Condition_Statement(1) : {Token t;}{
-	t = <WHILE> {jjtThis.value = t.image;}
-	| t = <IF> {jjtThis.value = t.image;}
-	| t = <ELSE> {jjtThis.value = t.image;}
 }

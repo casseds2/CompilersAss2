@@ -682,7 +682,7 @@ String identifier()     : {/*@bgen(jjtree) ID */
              jjtree.closeNodeScope(jjtn000, true);
              jjtc000 = false;
            }
-/*@egen*/ {jjtn000.value = t.image; return t.image;}/*@bgen(jjtree)*/
+/*@egen*/ {jjtn000.value = t.image; ST.put(t.image, new STC("ID", t.image));return t.image;}/*@bgen(jjtree)*/
   } finally {
     if (jjtc000) {
       jjtree.closeNodeScope(jjtn000, true);
@@ -703,7 +703,7 @@ void num()      : {/*@bgen(jjtree) Num */
                     jjtree.closeNodeScope(jjtn000, true);
                     jjtc000 = false;
                   }
-/*@egen*/ {jjtn000.value = t.image;}/*@bgen(jjtree)*/
+/*@egen*/ {jjtn000.value = t.image; ST.put(t.image, new STC("Num", t.image));}/*@bgen(jjtree)*/
         } finally {
           if (jjtc000) {
             jjtree.closeNodeScope(jjtn000, true);

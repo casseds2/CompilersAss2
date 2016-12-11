@@ -804,7 +804,7 @@ public class JJTree/*@bgen(jjtree)*/implements JJTreeTreeConstants, JJTreeConsta
       t = jj_consume_token(ID);
              jjtree.closeNodeScope(jjtn000, true);
              jjtc000 = false;
-            jjtn000.value = t.image; {if (true) return t.image;}
+            jjtn000.value = t.image; ST.put(t.image, new STC("ID", t.image));{if (true) return t.image;}
     } finally {
     if (jjtc000) {
       jjtree.closeNodeScope(jjtn000, true);
@@ -822,7 +822,7 @@ public class JJTree/*@bgen(jjtree)*/implements JJTreeTreeConstants, JJTreeConsta
       t = jj_consume_token(NUM);
                     jjtree.closeNodeScope(jjtn000, true);
                     jjtc000 = false;
-                   jjtn000.value = t.image;
+                   jjtn000.value = t.image; ST.put(t.image, new STC("Num", t.image));
     } finally {
           if (jjtc000) {
             jjtree.closeNodeScope(jjtn000, true);
