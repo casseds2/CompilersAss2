@@ -6,14 +6,14 @@ class ASTDecl extends SimpleNode {
     super(id);
   }
 
-  public ASTDecl(MyJJ p, int id) {
+  public ASTDecl(JJTree p, int id) {
     super(p, id);
   }
 
 
   /** Accept the visitor. **/
-  public Object jjtAccept(MyJJVisitor visitor, Object data) {
+  public Object jjtAccept(JJTreeVisitor visitor, Object data) {
     return visitor.visit(this, data);
   }
 }
-/* JavaCC - OriginalChecksum=1a0f48fc1be6d1b6c3c7696d3cddd6d6 (do not edit this line) */
+/* JavaCC - OriginalChecksum=367d9c89d739764fb1c953c63b80796b (do not edit this line) */

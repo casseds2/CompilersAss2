@@ -158,19 +158,19 @@ SimpleNode program() #PROGRAM : {}{
 }
 
 void decl_list() #void : {}{
-  (decl() <SEMIC> decl_list())?  /**SHOULD I ADD #decl_list(2) after this as its optional?**/
+  (decl() <SEMIC> [decl_list() #Decls(2)] )  /**SHOULD I ADD #decl_list(2) after this as its optional?**/
 }
 
-void decl() #void : {}{
+void decl() : {}{
   var_decl() | const_decl()
 }
 
 void var_decl() #VAR: {}{
-  <VARIABLE> id() <COLON> type()
+  <VARIABLE> id() <COLON> type() #Decl(1)
 }
 
 void const_decl() #CONST : {}{
-  <CONSTANT> id() <COLON> type() <ASSIGN> expression()
+  <CONSTANT> id() <COLON> type() <ASSIGN> expression() #Decl(1)
 }
 
 void function_list() #void : {}{ //Dont want to create a node as its done in function()
@@ -188,9 +188,9 @@ void function() #FUNCTION : {}{
 
 
 void type () #TYPE : {Token t;}{
-  t = <INTEGER> #INT {jjtThis.value = t.image;}
-  | t = <BOOLEAN> #BOOL {jjtThis.value = t.image;}
-  | t = <VOID> #VOID {jjtThis.value = t.image;}
+  t = <INTEGER> {jjtThis.value = t.image;}
+  | t = <BOOLEAN> {jjtThis.value = t.image;}
+  | t = <VOID> {jjtThis.value = t.image;}
 
 }
 
@@ -205,10 +205,10 @@ void nemp_parameter_list() #void : {}{ //dont want to create a node, its done in
 void main() #MAIN : {}{
   [
   <MAIN>
-  lchain()
+  <LCHAIN>
     decl_list()
     statement_block()
-  rchain()
+  <RCHAIN>
   ]
 }
 
@@ -216,15 +216,15 @@ void statement_block() #void : {}{
   (statement() statement_block())?
 }
 
-void statement() #void : {}{ //Node will be created called statement
+void statement() #STATE : {}{ //Node will be created called statement
     id() 
     (
-        <ASSIGN> #EQUALS expression() <SEMIC> 
+        <ASSIGN> expression() <SEMIC> 
       | <LBR> arg_list() <RBR> <SEMIC>
     ) 
-  | lchain() #OPENSTATEMENTBLOCK statement_block() rchain() #CLOSESTATEMENTBLOCK
-  | <IF> #IF condition() lchain() statement_block() rchain() [<ELSE> #ELSE lchain() statement_block() rchain()] /*****OPTION TO ELSE???*****/
-  | <WHILE> #WHILE condition() lchain() statement_block() rchain()
+  | <LCHAIN> #OPENSTATEMENTBLOCK statement_block() <RCHAIN> #CLOSESTATEMENTBLOCK
+  | if1() condition() <LCHAIN> statement_block() <RCHAIN> [<ELSE> #ELSE <LCHAIN> statement_block() <RCHAIN>] /*****OPTION TO ELSE???*****/
+  | <WHILE> #WHILE condition() <LCHAIN> statement_block() <RCHAIN>
   | <SKIPSKIP> <SEMIC>
 }
 
@@ -247,8 +247,8 @@ void expression() #void : {}{
 }
 
 void binary_arith_op() #BINOP : {Token t;}{
-    t = <PLUS> #PLUS {jjtThis.value = t.image;} 
-    | t = <MINUS> #MINUS {jjtThis.value = t.image;}
+    t = <PLUS> {jjtThis.value = t.image;} 
+    | t = <MINUS> {jjtThis.value = t.image;}
 }
 
 /*********************ORIGINAL***********************/
@@ -320,10 +320,10 @@ void id() #ID : {Token t;} {
   t = <ID> {jjtThis.value = t.image;}
 }
 
-void lchain() #LCHAIN : {}{
-  <LCHAIN>
+void if1() #IF : {}{
+  <IF>
 }
 
-void rchain() #RCHAIN :{}{
-  <RCHAIN>
+void number() : {Token t;}{
+  t = <NUM> {jjtThis.value = t.image;}
 }

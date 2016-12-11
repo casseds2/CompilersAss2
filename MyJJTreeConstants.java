@@ -3,63 +3,59 @@ public interface MyJJTreeConstants
 {
   public int JJTPROGRAM = 0;
   public int JJTVOID = 1;
-  public int JJTVAR = 2;
-  public int JJTCONST = 3;
-  public int JJTFUNCTION = 4;
-  public int JJTTYPE = 5;
-  public int JJTINT = 6;
-  public int JJTBOOL = 7;
+  public int JJTDECLS = 2;
+  public int JJTDECL = 3;
+  public int JJTVAR = 4;
+  public int JJTCONST = 5;
+  public int JJTFUNCTION = 6;
+  public int JJTTYPE = 7;
   public int JJTPARAMSLIST = 8;
   public int JJTMAIN = 9;
-  public int JJTEQUALS = 10;
+  public int JJTSTATE = 10;
   public int JJTOPENSTATEMENTBLOCK = 11;
   public int JJTCLOSESTATEMENTBLOCK = 12;
-  public int JJTIF = 13;
-  public int JJTELSE = 14;
-  public int JJTWHILE = 15;
-  public int JJTBINOP = 16;
-  public int JJTPLUS = 17;
-  public int JJTMINUS = 18;
-  public int JJTNUM = 19;
-  public int JJTTRUE = 20;
-  public int JJTFALSE = 21;
-  public int JJTANDOR = 22;
-  public int JJTCOMPOP = 23;
-  public int JJTARGUMENTSLIST = 24;
-  public int JJTID = 25;
-  public int JJTLCHAIN = 26;
-  public int JJTRCHAIN = 27;
+  public int JJTELSE = 13;
+  public int JJTWHILE = 14;
+  public int JJTBINOP = 15;
+  public int JJTNUM = 16;
+  public int JJTTRUE = 17;
+  public int JJTFALSE = 18;
+  public int JJTMINUS = 19;
+  public int JJTANDOR = 20;
+  public int JJTCOMPOP = 21;
+  public int JJTARGUMENTSLIST = 22;
+  public int JJTID = 23;
+  public int JJTIF = 24;
+  public int JJTNUMBER = 25;
 
 
   public String[] jjtNodeName = {
     "PROGRAM",
     "void",
+    "Decls",
+    "decl",
     "VAR",
     "CONST",
     "FUNCTION",
     "TYPE",
-    "INT",
-    "BOOL",
     "PARAMSLIST",
     "MAIN",
-    "EQUALS",
+    "STATE",
     "OPENSTATEMENTBLOCK",
     "CLOSESTATEMENTBLOCK",
-    "IF",
     "ELSE",
     "WHILE",
     "BINOP",
-    "PLUS",
-    "MINUS",
     "NUM",
     "TRUE",
     "FALSE",
+    "MINUS",
     "ANDOR",
     "COMPOP",
     "ARGUMENTSLIST",
     "ID",
-    "LCHAIN",
-    "RCHAIN",
+    "IF",
+    "number",
   };
 }
-/* JavaCC - OriginalChecksum=1ec160ddbf96591ec77a98466f4bfaef (do not edit this line) */
+/* JavaCC - OriginalChecksum=caa7014e71f82c0679a1c230a506f87c (do not edit this line) */

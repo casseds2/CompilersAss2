@@ -2,3 +2,5 @@ var arg_1 :integer;
 var arg_2 :integer;
 var result: integer;
 const five: integer = 5;
+var arg_3 :integer; 
+arg_3 = arg_1 + arg_2;

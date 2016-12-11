@@ -14,7 +14,7 @@ integer multiply (x:integer , y:integer)
 
 	else
 	{
-		if ~y < 0 && ~x >= 0
+		if( ((~y < 0) && ~x >= 0))
 		{
 			minus_sign = true ;
 			y = -y ;
