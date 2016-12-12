@@ -1,7 +1,7 @@
 main{
 
-	if((x > 0)  && y >= 0){
-			minus_sign = true;
-			x = -x ;
-	}
+	var arg_1 :integer;
+	var arg_2 :integer;
+	var result: integer;
+	const five: integer = 5;
 }

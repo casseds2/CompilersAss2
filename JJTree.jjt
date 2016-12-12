@@ -2,18 +2,20 @@
 
 options
 {
-  IGNORE_CASE = true;
-  MULTI = true;
+  IGNORE_CASE = false;
+  MULTI=true;
   VISITOR = true;
-  NODE_DEFAULT_VOID=true;
+  NODE_DEFAULT_VOID=false;
+  DEBUG_PARSER = false;
+  DEBUG_LOOKAHEAD = false;
 }
 
-PARSER_BEGIN(MyJJ)
+PARSER_BEGIN(JJTree)
 
 import java.io.*;
 import java.util.*;
 
-public class MyJJ
+public class JJTree
 {
   public static Hashtable ST = new Hashtable();
 
@@ -28,14 +30,14 @@ public class MyJJ
       System.exit(1);
     }
 
-    MyJJ parser = new MyJJ(new FileInputStream(args[0]));
+    JJTree parser = new JJTree(new FileInputStream(args[0]));
 
     SimpleNode root = parser.program();
 
     System.out.println("Abstract Syntax Tree:");
 
     root.dump(" ");
-
+	
     System.out.println();
     System.out.println("Symbol Table:");
 
@@ -54,22 +56,26 @@ public class MyJJ
       {
         System.out.println(" value = " + temp2.value);
       }
+      if(temp2.qualifier != null)
+      	System.out.println(" qualifier = " + temp2.qualifier);
     }
-    /*
+
     System.out.println();
+    System.out.println("Print Visitor:");
     System.out.println("Program:");
     PrintVisitor pv = new PrintVisitor();
     root.jjtAccept(pv, null);
-
+/*
     System.out.println();
     System.out.println("Type Checking:");
     TypeCheckVisitor tc = new TypeCheckVisitor();
     root.jjtAccept(tc, ST);
-    */    
+*/
+
   }
 }
 
-PARSER_END(MyJJ)
+PARSER_END(JJTree)
 
 
 /**Specify the Tokens For Lexical Analysis**/
@@ -160,16 +166,16 @@ void decl_list() #void : {}{
 	(decl() <SEMIC> decl_list())?
 }
 
-void decl() #Decl : {}{
-	(var_decl() | const_decl())
+void decl() #void : {}{
+	var_decl() | const_decl()
 }
 
-void var_decl() #Var_decl : {Token t; String name;}{
-	t = <VARIABLE> name = id() {jjtThis.value = t.image;} <COLON> type()
+void var_decl() #Var_Decl : {Token t; String type; String id;}{
+	t = <VARIABLE> id = identifier() <COLON> type = type() {jjtThis.value = t.image; ST.put(id, new STC(type, id, t.image));}
 }
 
-void const_decl() #Const_decl : {Token t; String name;}{
-	t = <CONSTANT> name = id() {jjtThis.value = t.image;} <COLON> type() <ASSIGN> expression() #ASSIGN(2)
+void const_decl() #Const_Decl : {Token t; String type; String id;}{
+	t = <CONSTANT> id = identifier() <COLON> type = type() <ASSIGN> #Assign(2) expression() {jjtThis.value = t.image; ST.put(id, new STC(type, id, t.image));} 
 }
 
 void function_list() #void : {}{
@@ -177,30 +183,30 @@ void function_list() #void : {}{
 }
 
 void function() #Function : {}{
-	type() id() <LBR> parameter_list() <RBR>
+	type() identifier() <LBR> parameter_list() <RBR>
 	<LCHAIN>
 		decl_list()
 		statement_block()
-		<RETURN> <LBR> (expression())? <RBR> <SEMIC> /**ARE BRACKETS IN THE RIGHT PLACE?**/
+		<RETURN> <LBR> (expression())? <RBR> <SEMIC> #Function_Return(1)
 	<RCHAIN>
 }
 
 
-void type () : {Token t;}{
-	  t = <INTEGER> {jjtThis.value = t.image;} 
-	| t = <BOOLEAN> {jjtThis.value = t.image;}
-	| t = <VOID> {jjtThis.value = t.image;}
+String type() #Type : {Token t;}{
+	t = <INTEGER> {jjtThis.value = t.image; return t.image;}
+	| t = <BOOLEAN> {jjtThis.value = t.image; return t.image;} 
+	| t = <VOID> {jjtThis.value = t.image; return t.image;}
 }
 
-void parameter_list() #void : {}{
+void parameter_list() #Params : {}{
 	(nemp_parameter_list())?
 }
 
 void nemp_parameter_list() #void : {}{
-	id() <COLON> (type() [<COMMA> nemp_parameter_list()]) /*****************CHANGED*******************/
+	identifier() <COLON> (type() [<COMMA> nemp_parameter_list()])
 }
 
-void main() : {}{
+void main() #Main : {}{
 	[
 	<MAIN>
 	<LCHAIN>
@@ -211,118 +217,96 @@ void main() : {}{
 }
 
 void statement_block() #void : {}{
-	(statement() #STM(1) statement_block())?
+	(statement() statement_block())?
 }
 
-void statement() : {}{
-		id() 
+void statement() #void : {}{
+		identifier()
 		(
-				<ASSIGN> expression() <SEMIC> //#ASSIGN(2) 
+				<ASSIGN> expression() <SEMIC> #Assign(2)
 			|	<LBR> arg_list() <RBR> <SEMIC>
-		)	
+		)
 	|	<LCHAIN> statement_block() <RCHAIN>
-	|	<IF> condition() <LCHAIN> statement_block() <RCHAIN> [<ELSE> <LCHAIN> statement_block() <RCHAIN>]
-	|	<WHILE> condition() <LCHAIN> statement_block() <RCHAIN>
+	|	conditionStatement() condition() <LCHAIN> statement_block() <RCHAIN> [elseC() <LCHAIN> statement_block() <RCHAIN>]
+//	|	whileC() condition() <LCHAIN> statement_block() <RCHAIN>
 	|	<SKIPSKIP> <SEMIC>
+//	|	<LBR> arg_list() <RBR> <SEMIC>
 }
 
-/***************************************************************************************************************/
-/*******************************************EXPRESSION RULE*****************************************************/
-/***************************************************************************************************************/
-
-/*********************ORIGINAL***********************/
-/*
-void expression() : {}{
-		fragment() binary_arith_op() fragment()
-	|	<LBR> expression() <RBR>
-	|	<ID> <LBR> arg_list() <RBR>
-	|	fragment()
+void elseC() #Else : {Token t;}{
+	t = <ELSE> {jjtThis.value = t.image;}
 }
-*/
 
 void expression() #void : {}{
-		fragment() [binary_arith_op() expression()]	
+		fragment() [binary_arith_op() ]	
 }
 
-void binary_arith_op(): {Token t;}{
-	  t = <PLUS> {jjtThis.value = t.image;}
-	| t = <MINUS> {jjtThis.value = t.image;}
+void binary_arith_op() #Bin_op(2) : {Token t;}{
+		t = <PLUS> expression() {jjtThis.value = t.image;}
+	|	t = <MINUS> expression() {jjtThis.value = t.image;}
 }
 
-/*********************ORIGINAL***********************/
-/*
-void fragment() : {}{
-		<ID>
-	|	<MINUS> <ID>
-	|	<NUM>
-	|	<TRUE>
-	|	<FALSE>
-	|	expression()
-}
-*/
-
-void fragment() #void : {}{
-		id()
+void fragment() #Fragment(1) : {Token t;}{
+		identifier()
 		(
 			[<LBR> arg_list() <RBR>]
 		)
-	|	number()
-	|	<TRUE>
-	|	<FALSE>
-	|	<MINUS> fragment()
+	|	num()
+	|	bool()
+	|	<MINUS> fragment() #Negative(1)
 }
 
-/***************************************************************************************************************/
-/*******************************************CONDITION RULE******************************************************/
-/***************************************************************************************************************/
-
-/*********************ORIGINAL***********************/
-/*
-void condition() : {}{
-		<NOTOP> condition()
-	|	<LBR> condition() <RBR>
-	|	expression() comp_op() expression()
-	|	condition() <LBR> <OROP> | <ANDOP> <RBR> condition()
-}
-*/
-
-/********************EDITED***************************/
-void condition() : {}{
+void condition() #void : {}{
 		<NOTOP> condition() 
 	|	<LBR> condition() <RBR> [conditionPrime()]
 	|	expression() comp_op() expression() [conditionPrime()]
 }
 
-void conditionPrime() #void : {}{
-	(<ANDOP> | <OROP>) condition()
+void conditionPrime() #And_Or(4) : {Token t;}{
+	(	
+		t = <ANDOP> {jjtThis.value = t.image;} 
+	| 	t = <OROP> {jjtThis.value = t.image;}
+	) condition()
 }
 
-void comp_op() : {Token t;}{
-		<BOOLEQLS>
-	|	<NOTEQLS>
-	|	<LESSTHAN>
-	|	<LESSEQL>
-	|	<GREATERTHAN>
-	|	<GREATEQL>
+void comp_op() #Comp_op(1) : {Token t;}{
+		t = <BOOLEQLS> {jjtThis.value = t.image;}
+	|	t = <NOTEQLS> {jjtThis.value = t.image;}
+	|	t = <LESSTHAN> {jjtThis.value = t.image;}
+	|	t = <LESSEQL> {jjtThis.value = t.image;}
+	|	t = <GREATERTHAN> {jjtThis.value = t.image;}
+	|	t = <GREATEQL> {jjtThis.value = t.image;}
 }
 
-void arg_list() #void : {}{
+void arg_list() #Args : {}{
 	(nemp_arg_list())?
 }
 
 void nemp_arg_list() #void : {}{
-	<ID> [(<COMMA> nemp_arg_list())]
+	identifier() [(<COMMA> nemp_arg_list())]
 }
 
-void id() : {Token t;}
-{
-  t = <ID> {jjtThis.value = t.image;}
+String identifier() #ID : {Token t;}{
+  t = <ID> {jjtThis.value = t.image; return t.image; ST.put(t.image, new STC("Identifier", t.image));}
 }
 
-void number() : {Token t;}{
-	t = <NUM> {jjtThis.value = t.image;}
+void num() #Num : {Token t;}{
+	t = <NUM> {jjtThis.value = t.image; ST.put(t.image, new STC("Integer", t.image));}
 }
 
-void true1() : {Token t;}{
-	t = <TRUE> {jjtThis.value = t.image;}
+void bool() #Bool : {Token t;}{
+	t = <TRUE> {jjtThis.value = t.image; ST.put(t.image, new STC("Boolean", t.image));}
+	| t = <FALSE> {jjtThis.value = t.image; ST.put(t.image, new STC("Boolean", t.image));}
+}
+
+/*
+void minus() #Minus : {Token t;}{
+	t = <MINUS> {jjtThis.value = t.image;}
+}
+*/
+
+void conditionStatement() #Condition_Statement : {Token t;}{
+	t = <WHILE> {jjtThis.value = t.image;}
+	| t = <IF> {jjtThis.value = t.image;}
+	//| t = <ELSE> {jjtThis.value = t.image;}
 }

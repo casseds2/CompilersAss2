@@ -7,13 +7,13 @@ class SimpleNode implements Node {
   protected Node[] children;
   protected int id;
   protected Object value;
-  protected MyJJ parser;
+  protected JJTree parser;
 
   public SimpleNode(int i) {
     id = i;
   }
 
-  public SimpleNode(MyJJ p, int i) {
+  public SimpleNode(JJTree p, int i) {
     this(i);
     parser = p;
   }
@@ -50,13 +50,13 @@ class SimpleNode implements Node {
   public Object jjtGetValue() { return value; }
 
   /** Accept the visitor. **/
-  public Object jjtAccept(MyJJVisitor visitor, Object data)
+  public Object jjtAccept(JJTreeVisitor visitor, Object data)
 {
     return visitor.visit(this, data);
   }
 
   /** Accept the visitor. **/
-  public Object childrenAccept(MyJJVisitor visitor, Object data)
+  public Object childrenAccept(JJTreeVisitor visitor, Object data)
 {
     if (children != null) {
       for (int i = 0; i < children.length; ++i) {
@@ -72,20 +72,21 @@ class SimpleNode implements Node {
      toString(String), otherwise overriding toString() is probably all
      you need to do. */
 
-  public String toString() { return MyJJTreeConstants.jjtNodeName[id]; }
+  public String toString() { return JJTreeTreeConstants.jjtNodeName[id]; }
   public String toString(String prefix) { return prefix + toString(); }
 
   /* Override this method if you want to customize how the node dumps
      out its children. */
 
   public void dump(String prefix) {
-    //System.out.println(toString(prefix));
+//    System.out.println(toString(prefix));
     System.out.print(toString(prefix));
     if (value != null)
     {
       System.out.print("(" + value + ")");
     }
     System.out.println();
+
     if (children != null) {
       for (int i = 0; i < children.length; ++i) {
         SimpleNode n = (SimpleNode)children[i];
@@ -97,4 +98,4 @@ class SimpleNode implements Node {
   }
 }
 
-/* JavaCC - OriginalChecksum=5e3ef01135add73d4f15525acffd92bb (do not edit this line) */
+/* JavaCC - OriginalChecksum=a72669d119c244520efb670e4aa4910d (do not edit this line) */
